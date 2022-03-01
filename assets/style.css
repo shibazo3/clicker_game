@@ -1,0 +1,30 @@
+body {
+  margin: 0;
+  font-family: Futura !important;
+  letter-spacing: 0.03em !important;
+}
+
+.bg-navy {
+  background-color: #3c5279;
+}
+
+.selectItem {
+  background-color: #3c5279;
+}
+
+.selectItem:hover {
+  border: 2px solid steelblue;
+  cursor: pointer;
+}
+
+.userInfoBorder {
+  border: 0.25rem solid #343a40;
+}
+
+.flowHeight {
+  height: 80% !important;
+}
+
+.clickable:hover {
+  cursor: pointer;
+}
