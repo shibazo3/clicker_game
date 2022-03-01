@@ -10,7 +10,7 @@ class User {
     this.days = days;
     this.money = money;
     this.clickCount = 0;
-    this.incomePerClick = 500;
+    this.incomePerClick = 100;
     this.incomePerSec = 0;
     this.items = items;
   }
@@ -128,7 +128,7 @@ class View {
             <h5>${user.clickCount} 公演</h5>
             <p>1クリック ¥${user.incomePerClick}</p>
         </div>
-        <div class="p-2 pt-5 d-flex justify-content-center">
+        <div class="p-2 pt-5 d-flex justify-content-center" id="clickerWrapper">
             <img src="/assets/images/manzai.png" width=80% class="py-2 hover img-fluid clickable" id="manzai">
         </div>
     `;
@@ -159,9 +159,6 @@ class View {
     return container;
   }
 
-  /* TODO
-  レートの実装
-  */
   static createItemPage(user) {
     let container = document.createElement("div");
     for (let i = 0; i < user.items.length; i++) {
@@ -176,8 +173,11 @@ class View {
                     <h4>${user.items[i].currentAmount}</h4>
                 </div>
                 <div class="d-flex justify-content-between">
-                    <p>${user.items[i].price}</p>
-                    <p class="text-success">¥30000 / sec</p>
+                    <p>¥${user.items[i].price}</p>
+                    <p class="text-success">￥${View.displayItemIncome(
+                      user.items[i],
+                      user.items[i].type
+                    )}</p>
                 </div>
             </div>
         </div>
@@ -188,17 +188,76 @@ class View {
     for (let i = 0; i < select.length; i++) {
       select[i].addEventListener("click", function () {
         config.mainPage.querySelectorAll("#displayItems")[0].innerHTML = "";
-        config.mainPage.querySelectorAll("#displayItems")[0].append();
+        config.mainPage
+          .querySelectorAll("#displayItems")[0]
+          .append(View.createPurchasePage(user, i));
       });
     }
 
     return container;
   }
 
-  /* TODO
-  アイテム購入ページの作成
-  */
-  static createPurchasePage(user) {}
+  static createPurchasePage(user, index) {
+    let container = document.createElement("div");
+    container.innerHTML = `
+      <div class="bg-navy p-2 m-1 text-white">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h4>${user.items[index].name}</h4>
+            <p>最大追加可能数: ${View.displayMaxPurchase(
+              user.items[index].maxAmount
+            )}</p>
+            <p>料金: ￥${user.items[index].price}</p>
+            <p>効果: ￥${View.displayItemIncome(
+              user.items[index],
+              user.items[index].type
+            )}</p>
+          </div>
+          <div class="p-2 d-sm-block col-sm-5">
+            <img src="${user.items[index].url}" alt="" class="img-fluid">
+          </div>
+        </div>
+        <p>いくつ追加しますか？</p>
+          <input type="number" placeholder="0" class="col-12 form-control" />
+          <p class="text-right" id="totalPrice">合計: ¥0</p>
+          <div class="d-flex justify-content-between pb-3">
+            <button class="btn btn-outline-primary col-5 bg-light" id="back">戻る</button>
+            <button class="btn btn-primary col-5 bg-right" id="purchase">購入する</button>
+          </div>
+      </div>
+    `;
+
+    let inputCount = container.querySelectorAll("input")[0];
+    inputCount.addEventListener("input", function () {
+      container.querySelectorAll("#totalPrice")[0].innerHTML = `
+        合計: ¥${Controller.getTotalPrice(user.items[index], inputCount.value)}
+      `;
+    });
+
+    let backBtn = container.querySelectorAll("#back")[0];
+    backBtn.addEventListener("click", function () {
+      View.updateMainPage(user);
+    });
+
+    let purchaseBtn = container.querySelectorAll("#purchase")[0];
+    purchaseBtn.addEventListener("click", function () {
+      Controller.purchaseItems(user, index, inputCount.value);
+      View.updateMainPage(user);
+    });
+
+    return container;
+  }
+
+  static displayMaxPurchase(maxAmount) {
+    if (maxAmount === -1) return "∞";
+    else return maxAmount;
+  }
+
+  static displayItemIncome(item, type) {
+    if (type === "ability") return item.perMoney + "/クリック";
+    else if (type === "authority") return item.perRate + " /秒";
+    else return item.perMoney + " /秒";
+  }
 
   static updateMainPage(user) {
     config.mainPage.innerHTML = "";
@@ -259,8 +318,8 @@ class Controller {
 
   static createInitialUserAccount(userName) {
     /* TODO
-    細かいステータスの設定
     アイテムの追加
+    Items("名前", "タイプ", 所持数, 最大購入可能数, クリックごとに得られるお金, 秒ごとに得られるお金, 値段, 画像URL)
     */
     let itemsList = [
       new Items(
@@ -277,8 +336,8 @@ class Controller {
         "漫才秘伝の書（中級）",
         "ability",
         0,
-        500,
-        25,
+        250,
+        100,
         0,
         50000,
         "/assets/images/makimono.png"
@@ -287,8 +346,8 @@ class Controller {
         "漫才秘伝の書（上級）",
         "ability",
         0,
-        500,
-        25,
+        100,
+        250,
         0,
         100000,
         "/assets/images/makimono.png"
@@ -298,49 +357,49 @@ class Controller {
         "sale",
         0,
         100,
-        32000,
-        0,
-        10000,
+        100,
+        100,
+        50000,
         "/assets/images/douga_haishin_youtuber.png"
       ),
       new Items(
         "グッズ販売",
         "sale",
         0,
-        1000,
-        30,
+        100,
+        500,
         0,
         100000,
         "/assets/images/tshirt.png"
-      ),
-      new Items(
-        "寄席開催",
-        "sale",
-        0,
-        100,
-        32000,
-        0,
-        100000,
-        "/assets/images/building_rakugo_yose.png"
       ),
       new Items(
         "DVD販売",
         "sale",
         0,
         500,
-        120,
+        3000,
         0,
-        300000,
+        200000,
         "/assets/images/disc_case.png"
+      ),
+      new Items(
+        "寄席開催",
+        "sale",
+        0,
+        100,
+        30000,
+        0,
+        500000,
+        "/assets/images/building_rakugo_yose.png"
       ),
       new Items(
         "出版",
         "sale",
         0,
-        500,
-        120,
-        0,
-        500000,
+        30,
+        100000,
+        100000,
+        1000000,
         "/assets/images/book_sasshi2_yellow.png"
       ),
     ];
@@ -354,11 +413,42 @@ class Controller {
     return new User(userName, 1, 0, 30000, itemsList);
   }
 
-  /* TODO
-  アイテムのレート計算
-  アイテム購入の処理
-  アイテム購入後のステータス更新
-  */
+  static purchaseItems(user, index, count) {
+    if (count <= 0 || count % 1 != 0) {
+      alert("不正な値です。");
+    } else if (
+      Controller.getTotalPrice(user.items[index], count) > user.money
+    ) {
+      alert("所持金が足りません。");
+    } else if (
+      user.items[index].currentAmount + count > user.items[index].maxAmount &&
+      user.items[index].type !== "authorsity"
+    ) {
+      alert("これ以上の購入はできません。");
+    } else {
+      user.money -= Controller.getTotalPrice(user.items[index], count);
+      user.items[index].currentAmount += Number(count);
+      Controller.updateUserIncome(user, user.items[index], count);
+    }
+  }
+
+  static getTotalPrice(item, count) {
+    let total = 0;
+    count = Number(count);
+    if (count > 0 && count % 1 == 0) return (total += item.price * count);
+    else return total;
+  }
+
+  static updateUserIncome(user, items, count) {
+    count = Number(count);
+    if (items.type === "ability") {
+      user.incomePerClick += items.perMoney * count;
+    } else if (items.type === "authority") {
+      user.incomePerSec += user.stock * items.perRate;
+    } else if (items.type === "sale") {
+      user.incomePerSec += items.perMoney * count;
+    }
+  }
 
   static startTimer(user) {
     Controller.timer = setInterval(function () {
