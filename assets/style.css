@@ -28,3 +28,8 @@ body {
 .clickable:hover {
   cursor: pointer;
 }
+
+#clickerWrapper:active {
+  transform: translateY(10px);
+  transition: transform 0.5s;
+}
