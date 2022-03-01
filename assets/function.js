@@ -282,21 +282,17 @@ class Controller {
   static startGame() {
     View.createInitialPage();
 
-    // 新規ゲーム;
     let newGameBtn = config.initialPage.querySelectorAll("#newGame")[0];
     newGameBtn.addEventListener("click", function () {
       let userName = config.initialPage.querySelectorAll("input")[0].value;
       if (userName === "") {
-        alert("Please Enter your name");
+        alert("名前を入力してください");
       } else {
-        // ユーザー作成
         let user = Controller.createInitialUserAccount(userName);
-        // メインページに移動
         Controller.moveInitialToMain(user);
       }
     });
 
-    // ログイン
     let loginBtn = config.initialPage.querySelectorAll("#login")[0];
     loginBtn.addEventListener("click", function () {
       let userName = config.initialPage.querySelectorAll("input")[0].value;
