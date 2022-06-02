@@ -4,13 +4,13 @@ const config = {
 };
 
 class User {
-  constructor(name, years, days, money, items) {
+  constructor(name, years, days, money, items, incomePerClick) {
     this.name = name;
     this.years = years;
     this.days = days;
     this.money = money;
     this.clickCount = 0;
-    this.incomePerClick = 100;
+    this.incomePerClick = incomePerClick ? incomePerClick : 100;
     this.incomePerSec = 0;
     this.items = items;
   }
@@ -405,7 +405,7 @@ class Controller {
       userName === "浜ちゃん" ||
       userName === "ダウンタウン"
     )
-      return new User(userName, 1, 0, Math.pow(10, 9), itemsList);
+      return new User(userName, 1, 0, Math.pow(10, 9), itemsList, 30000);
     return new User(userName, 1, 0, 30000, itemsList);
   }
 
@@ -451,7 +451,7 @@ class Controller {
       user.days++;
       user.money += user.incomePerSec;
       if (user.days % 365 === 0) {
-        user.year++;
+        user.years++;
         View.updateUserInfo(user);
       } else {
         View.updateUserInfo(user);
